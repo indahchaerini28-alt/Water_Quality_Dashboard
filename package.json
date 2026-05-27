@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "firebase-admin": "^13.10.0",
+    "ws": "^8.21.0"
+  },
+  "name": "water_quality_dashboard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

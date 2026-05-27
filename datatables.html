@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>History Water Quality</title>
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<link rel="stylesheet"
+href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
+<style>
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f4f7fb;
+overflow-x:hidden;
+}
+
+/* SIDEBAR */
+.sidebar{
+width:230px;
+height:100vh;
+position:fixed;
+background:#0f172a;
+padding:15px;
+color:white;
+}
+
+.sidebar img{
+width:150px;
+display:block;
+margin:auto;
+margin-top:-10px;
+margin-bottom:10px;
+}
+
+.sidebar a{
+display:block;
+padding:12px;
+color:white;
+text-decoration:none;
+border-radius:12px;
+margin-bottom:10px;
+font-weight:600;
+font-size:15px;
+transition:0.3s;
+}
+
+.sidebar a:hover{
+background:#1e293b;
+}
+
+.sidebar a.active{
+background:#1e40af;
+}
+
+/* MAIN */
+.main{
+margin-left:230px;
+padding:20px;
+}
+
+/* HEADER */
+.top-box{
+background:#60a5fa;
+padding:18px;
+border-radius:18px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+margin-bottom:25px;
+color:white;
+text-align:center;
+}
+
+/* CARD */
+.history-card{
+background:white;
+padding:20px;
+border-radius:18px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* FILTER */
+.filter-box{
+display:flex;
+gap:15px;
+flex-wrap:wrap;
+margin-bottom:20px;
+align-items:end;
+}
+
+.btn-custom{
+border:none;
+padding:10px 18px;
+border-radius:10px;
+font-weight:bold;
+color:white;
+}
+
+.btn-filter{background:#2563eb;}
+.btn-reset{background:#64748b;}
+.btn-export{background:#dc2626;}
+.btn-delete{background:#b91c1c;}
+
+/* TABLE */
+table.dataTable thead{
+background:#2563eb;
+color:white;
+}
+
+table.dataTable th,
+table.dataTable td{
+text-align:center;
+white-space:nowrap;
+font-size:13px;
+}
+
+table.dataTable{
+width:100% !important;
+}
+
+/* LOADING */
+#loadingText{
+text-align:center;
+font-weight:bold;
+padding:15px;
+color:#2563eb;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+<img src="assets/img/water_quality_logo.png"
+alt="Logo">
+
+<a href="index.html">
+<i class="fa fa-home"></i>
+Dashboard
+</a>
+
+<a href="datatables.html"
+class="active">
+
+<i class="fa fa-table"></i>
+History
+
+</a>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="top-box">
+
+<h2>History Water Quality</h2>
+
+<p>
+Riwayat aktivitas pengiriman data sensor
+</p>
+
+</div>
+
+<div class="history-card">
+
+<!-- FILTER -->
+<div class="filter-box">
+
+<div>
+<label>Dari:</label>
+
+<input type="date"
+id="fromDate"
+class="form-control">
+</div>
+
+<div>
+<label>Sampai:</label>
+
+<input type="date"
+id="toDate"
+class="form-control">
+</div>
+
+<div>
+<button id="filterBtn"
+class="btn-custom btn-filter">
+
+Filter Data
+
+</button>
+</div>
+
+<div>
+<button id="resetBtn"
+class="btn-custom btn-reset">
+
+Reset
+
+</button>
+</div>
+
+<div>
+<button id="exportBtn"
+class="btn-custom btn-export">
+
+Export PDF
+
+</button>
+</div>
+
+<div>
+<button id="deleteBtn"
+class="btn-custom btn-delete">
+
+Hapus History
+
+</button>
+</div>
+
+</div>
+
+<!-- LOADING -->
+<div id="loadingText">
+Loading data...
+</div>
+
+<!-- TABLE -->
+<table id="historyTable"
+class="table table-striped">
+
+<thead>
+
+<tr>
+
+<th>No</th>
+<th>Waktu</th>
+<th>pH</th>
+<th>Kekeruhan</th>
+<th>Salinitas</th>
+<th>Status Air</th>
+<th>Kategori pH</th>
+<th>Kategori Kekeruhan</th>
+<th>Kategori Salinitas</th>
+
+</tr>
+
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+</div>
+
+<!-- JS -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+
+/* ================= DATATABLE ================= */
+let table = $('#historyTable').DataTable({
+
+pageLength: 10,
+scrollX: true,
+autoWidth: false,
+order: [[0, "asc"]],
+deferRender: true
+
+});
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+
+apiKey:
+"AIzaSyApHKIH9r_1iY6502T-HtTxxokhNyyRXzo",
+
+databaseURL:
+"https://water-quality-dashboard-b6ac0-default-rtdb.asia-southeast1.firebasedatabase.app"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+let allData = [];
+let no = 1;
+
+/* ================= LOAD DATA ================= */
+db.ref("history")
+.limitToLast(100)
+.on("child_added", function(snapshot){
+
+let d = snapshot.val();
+
+allData.push(d);
+
+table.row.add([
+
+no++,
+
+d.timestamp || "-",
+
+d.ph
+? parseFloat(d.ph).toFixed(2)
+: "-",
+
+d.turbidity
+? parseFloat(d.turbidity).toFixed(1)
+: "-",
+
+d.salinity
+? parseFloat(d.salinity).toFixed(2)
+: "-",
+
+d.status || "-",
+
+d.ph_category || "-",
+
+d.turbidity_category || "-",
+
+d.salinity_category || "-"
+
+]).draw(false);
+
+table.columns.adjust();
+
+document.getElementById(
+"loadingText"
+).style.display = "none";
+
+});
+
+/* ================= FILTER ================= */
+document.getElementById(
+"filterBtn"
+).onclick = function(){
+
+let fromDate =
+document.getElementById(
+"fromDate"
+).value;
+
+let toDate =
+document.getElementById(
+"toDate"
+).value;
+
+table.clear();
+
+let noFilter = 1;
+
+allData.forEach(function(d){
+
+let itemDate =
+(d.timestamp || "")
+.substring(0,10);
+
+if(itemDate >= fromDate &&
+itemDate <= toDate){
+
+table.row.add([
+
+noFilter++,
+
+d.timestamp || "-",
+
+d.ph
+? parseFloat(d.ph).toFixed(2)
+: "-",
+
+d.turbidity
+? parseFloat(d.turbidity).toFixed(1)
+: "-",
+
+d.salinity
+? parseFloat(d.salinity).toFixed(2)
+: "-",
+
+d.status || "-",
+
+d.ph_category || "-",
+
+d.turbidity_category || "-",
+
+d.salinity_category || "-"
+
+]);
+
+}
+
+});
+
+table.draw();
+
+table.columns.adjust();
+
+};
+
+/* ================= RESET ================= */
+document.getElementById(
+"resetBtn"
+).onclick = function(){
+
+document.getElementById(
+"fromDate"
+).value = "";
+
+document.getElementById(
+"toDate"
+).value = "";
+
+table.clear();
+
+let resetNo = 1;
+
+allData.forEach(function(d){
+
+table.row.add([
+
+resetNo++,
+
+d.timestamp || "-",
+
+d.ph
+? parseFloat(d.ph).toFixed(2)
+: "-",
+
+d.turbidity
+? parseFloat(d.turbidity).toFixed(1)
+: "-",
+
+d.salinity
+? parseFloat(d.salinity).toFixed(2)
+: "-",
+
+d.status || "-",
+
+d.ph_category || "-",
+
+d.turbidity_category || "-",
+
+d.salinity_category || "-"
+
+]);
+
+});
+
+table.draw();
+
+table.columns.adjust();
+
+};
+
+/* ================= EXPORT PDF ================= */
+document.getElementById(
+"exportBtn"
+).onclick = function(){
+
+const { jsPDF } = window.jspdf;
+
+const doc =
+new jsPDF("landscape");
+
+doc.setFontSize(16);
+
+doc.text(
+"History Monitoring Kualitas Air",
+14,
+15
+);
+
+doc.setFontSize(10);
+
+doc.text(
+"Data monitoring kualitas air berbasis IoT",
+14,
+22
+);
+
+let rows = [];
+
+table.rows({
+search:'applied'
+}).every(function(){
+
+let data = this.data();
+
+rows.push(data);
+
+});
+
+doc.autoTable({
+
+head:[[
+"No",
+"Waktu",
+"pH",
+"Kekeruhan",
+"Salinitas",
+"Status Air",
+"Kategori pH",
+"Kategori Kekeruhan",
+"Kategori Salinitas"
+]],
+
+body:rows,
+
+startY:30,
+
+styles:{
+fontSize:8,
+halign:'center',
+valign:'middle'
+},
+
+headStyles:{
+fillColor:[37,99,235]
+},
+
+theme:'grid',
+
+margin:{
+left:10,
+right:10
+}
+
+});
+
+const totalPages =
+doc.internal.getNumberOfPages();
+
+for(let i=1;i<=totalPages;i++){
+
+doc.setPage(i);
+
+doc.setFontSize(8);
+
+doc.text(
+`Page ${i} of ${totalPages}`,
+270,
+200
+);
+
+}
+
+doc.save(
+"history_water_quality.pdf"
+);
+
+};
+
+/* ================= DELETE ================= */
+document.getElementById(
+"deleteBtn"
+).onclick = function(){
+
+if(confirm(
+"Yakin ingin menghapus semua history?"
+)){
+
+let pass =
+prompt(
+"Masukkan password admin"
+);
+
+if(pass !== "admin123"){
+
+alert("Password salah");
+
+return;
+}
+
+db.ref("history")
+.remove()
+.then(()=>{
+
+alert(
+"History berhasil dihapus"
+);
+
+table.clear().draw();
+
+allData = [];
+
+no = 1;
+
+});
+
+}
+
+};
+
+</script>
+
+</body>
+</html>
