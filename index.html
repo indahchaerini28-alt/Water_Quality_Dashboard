@@ -203,6 +203,26 @@ body{
 
 <h2>Water Quality Dashboard</h2>
 
+<h4 id="waterStatus"
+style="
+margin-top:15px;
+font-weight:bold;
+font-size:28px;
+">
+Status Air : -
+</h4>
+
+<div
+id="statusDesc"
+style="
+font-size:15px;
+margin-top:8px;
+">
+Menunggu data sensor...
+</div>
+
+<br>
+
 WebSocket:
 <span id="wsStatus">Disconnected</span>
 
@@ -476,6 +496,28 @@ function connectWS(){
         document.getElementById("saltValue").innerText =
         parseFloat(data.salinity).toFixed(2)
         +" PPT";
+
+        /* STATUS AIR */
+
+        if(data.status === "Baik"){
+
+            document.getElementById("waterStatus").innerHTML =
+            "Status Air : ✅ BAIK";
+
+            document.getElementById("statusDesc").innerHTML =
+            "Air layak digunakan untuk kebutuhan umum";
+
+        }
+
+        else{
+
+            document.getElementById("waterStatus").innerHTML =
+            "Status Air : ❌ BURUK";
+
+            document.getElementById("statusDesc").innerHTML =
+            "Air tidak layak digunakan";
+
+        }
 
         /* SAVE FIREBASE */
 
