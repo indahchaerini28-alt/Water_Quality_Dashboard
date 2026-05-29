@@ -311,7 +311,7 @@ apiKey:
 "YOUR_API_KEY",
 
 databaseURL:
-"https://water-quality-dashboard-b6ac0-default-rtdb.asia-southeast1.firebasedatabase.app"
+"YOUR_DATABASE_URL"
 
 };
 
@@ -457,7 +457,7 @@ saltData,
 function connectWS(){
 
     ws = new WebSocket(
-    "wss://pantyhose-persecute-briskly.ngrok-free.dev"
+    "ws://pantyhose-persecute-briskly.ngrok-free.dev"
     );
 
     /* CONNECTED */
@@ -505,7 +505,7 @@ function connectWS(){
             "Status Air : ✅ BAIK";
 
             document.getElementById("statusDesc").innerHTML =
-            "Air layak digunakan untuk kebutuhan rumah tangga non-konsumsi";
+            "Air layak digunakan untuk kebutuhan rumah tangga non konsumsi";
 
         }
 
@@ -515,7 +515,7 @@ function connectWS(){
             "Status Air : ❌ BURUK";
 
             document.getElementById("statusDesc").innerHTML =
-            "Air memerlukan filtrasi sebelum digunakan";
+            "Air perlu filtrasi atau tidak layak digunakan";
 
         }
 
