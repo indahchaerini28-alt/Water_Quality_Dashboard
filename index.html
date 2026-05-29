@@ -437,44 +437,26 @@ saltData,
 function connectWS(){
 
     ws = new WebSocket(
-    "ws://https://pantyhose-persecute-briskly.ngrok-free.dev"
+    "wss://pantyhose-persecute-briskly.ngrok-free.dev"
     );
 
     /* CONNECTED */
     ws.onopen = () => {
 
-        wsStatus.innerText =
+        document.getElementById("wsStatus").innerText =
         "Connected";
 
-        wsText.innerText =
+        document.getElementById("wsText").innerText =
         "ESP32 Online";
 
-        console.log(
-        "[WS] Connected"
-        );
-    };
+        console.log("[WS] Connected");
 
-    /* DISCONNECTED */
-    ws.onclose = () => {
-
-        wsStatus.innerText =
-        "Disconnected";
-
-        wsText.innerText =
-        "Reconnecting...";
-
-        console.log(
-        "[WS] Disconnected"
-        );
-
-        setTimeout(
-        connectWS,
-        2000
-        );
     };
 
     /* RECEIVE DATA */
     ws.onmessage = (event) => {
+
+        console.log("DATA:", event.data);
 
         const data =
         JSON.parse(event.data);
@@ -482,42 +464,35 @@ function connectWS(){
         if(data.ph === undefined)
         return;
 
-        /* ================= SENSOR ================= */
+        /* SENSOR */
 
-        phValue.innerText =
-        parseFloat(data.ph)
-        .toFixed(2);
+        document.getElementById("phValue").innerText =
+        parseFloat(data.ph).toFixed(2);
 
-        turbValue.innerText =
-        parseFloat(data.turbidity)
-        .toFixed(2)
+        document.getElementById("turbValue").innerText =
+        parseFloat(data.turbidity).toFixed(2)
         +" NTU";
 
-        saltValue.innerText =
-        parseFloat(data.salinity)
-        .toFixed(2)
+        document.getElementById("saltValue").innerText =
+        parseFloat(data.salinity).toFixed(2)
         +" PPT";
 
-        /* ================= SAVE FIREBASE ================= */
+        /* SAVE FIREBASE */
 
         db.ref("history").push({
 
             timestamp:
             data.timestamp ||
 
-            new Date()
-            .toLocaleString(),
+            new Date().toLocaleString(),
 
             ph:data.ph,
 
-            turbidity:
-            data.turbidity,
+            turbidity:data.turbidity,
 
-            salinity:
-            data.salinity,
+            salinity:data.salinity,
 
-            status:
-            data.status || "-",
+            status:data.status || "-",
 
             ph_category:
             data.ph_category || "-",
@@ -530,7 +505,7 @@ function connectWS(){
 
         });
 
-        /* ================= CHART ================= */
+        /* CHART */
 
         labels.push(minuteCounter);
 
@@ -559,6 +534,7 @@ function connectWS(){
             turbData.shift();
 
             saltData.shift();
+
         }
 
         phChart.update();
@@ -566,6 +542,38 @@ function connectWS(){
         turbChart.update();
 
         saltChart.update();
+
+    };
+
+    /* ERROR */
+
+    ws.onerror = (error) => {
+
+        console.log(
+        "[WS ERROR]",
+        error
+        );
+
+    };
+
+    /* DISCONNECTED */
+
+    ws.onclose = () => {
+
+        console.log(
+        "[WS] Disconnected"
+        );
+
+        document.getElementById("wsStatus").innerText =
+        "Disconnected";
+
+        document.getElementById("wsText").innerText =
+        "Reconnecting...";
+
+        setTimeout(
+        connectWS,
+        2000
+        );
 
     };
 
