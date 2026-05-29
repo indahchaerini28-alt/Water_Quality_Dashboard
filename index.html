@@ -308,7 +308,7 @@ Waiting ESP32...
 const firebaseConfig = {
 
 apiKey:
-"AIzaSyApHKIH9r_1iY6502T-HtTxxokhNyyRXzo",
+"YOUR_API_KEY",
 
 databaseURL:
 "https://water-quality-dashboard-b6ac0-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -505,7 +505,7 @@ function connectWS(){
             "Status Air : ✅ BAIK";
 
             document.getElementById("statusDesc").innerHTML =
-            "Air layak digunakan untuk kebutuhan umum";
+            "Air layak digunakan untuk kebutuhan rumah tangga non-konsumsi";
 
         }
 
@@ -515,7 +515,7 @@ function connectWS(){
             "Status Air : ❌ BURUK";
 
             document.getElementById("statusDesc").innerHTML =
-            "Air tidak layak digunakan";
+            "Air memerlukan filtrasi sebelum digunakan";
 
         }
 
