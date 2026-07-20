@@ -1,631 +1,697 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>Water Quality Dashboard</title>
-
-<link rel="stylesheet"
-href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<style>
-
-/* ===== GLOBAL ===== */
-body{
-    margin:0;
-    font-family:'Segoe UI',sans-serif;
-    background:#f5f7fb;
-    color:#111827;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Quality Dashboard</title>
+  
+  <!-- CSS Libraries -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    .combined-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  margin-bottom:15px;
 }
 
-/* ===== SIDEBAR ===== */
-.sidebar{
-    width:230px;
-    height:100vh;
-    position:fixed;
-    background:#0f172a;
-    padding:20px;
-    color:white;
+.status-section{
+  flex:1;
+  text-align:center;
 }
 
-.sidebar img{
-    width:140px;
-    display:block;
-    margin:auto;
-    margin-bottom:25px;
+.control-section{
+  flex:1;
+  text-align:center;
 }
 
-.sidebar a{
-    display:block;
-    color:#cbd5e1;
-    text-decoration:none;
-    padding:12px;
-    border-radius:12px;
-    margin-bottom:10px;
-    font-weight:600;
-    transition:0.3s;
+.divider{
+  width:1px;
+  height:140px;
+  background:rgba(255,255,255,0.3);
 }
 
-.sidebar a:hover{
-    background:#1e293b;
-    color:white;
+.device-control{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:15px;
 }
 
-/* ===== MAIN ===== */
-.main{
-    margin-left:230px;
-    padding:25px;
+.device-box{
+  width:140px;
+  background:rgba(255,255,255,0.15);
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
 }
 
-/* ===== TOP BOX ===== */
-.top-box{
-    background:linear-gradient(135deg,#2563eb,#06b6d4);
-    color:white;
-    text-align:center;
-    padding:25px;
-    border-radius:18px;
-    margin-bottom:25px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+.device-box h6{
+  color:white;
+  margin-bottom:10px;
+}
+    /* ===== GLOBAL ===== */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 230px;
+      height: 100vh;
+      position: fixed;
+      background: #0f172a;
+      padding: 15px;
+      color: white;
+      z-index: 1000;
+    }
+    .sidebar img {
+      width: 140px;
+      display: block;
+      margin: auto;
+      margin-bottom: 25px;
+    }
+    .sidebar a {
+      display: block;
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .sidebar a:hover,
+    .sidebar a.active {
+      background: #1e40af;
+      color: white;
+    }
+
+    /* ===== MAIN ===== */
+    .main {
+      margin-left: 230px;
+      padding: 15px 25px;
+    }
+
+    /* ===== TOP BOX ===== */
+    .top-box {
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .top-box h2{
+  font-size:30px;
+  margin-bottom:4px;
 }
 
-/* ===== SENSOR CARD ===== */
-.card-grid{
-    display:flex;
-    gap:20px;
-    justify-content:center;
-    flex-wrap:wrap;
-    margin-bottom:25px;
+#wsStatus,
+#wsText,
+#lastUpdate{
+  font-size:13px;
 }
 
-.data-card{
-    width:240px;
-    padding:20px;
-    border-radius:18px;
-    display:flex;
-    align-items:center;
-    gap:15px;
-    color:white;
-    background:linear-gradient(135deg,#2563eb,#06b6d4);
-    box-shadow:0 10px 25px rgba(37,99,235,0.25);
-    transition:all 0.4s ease;
-    position:relative;
-    overflow:hidden;
-    cursor:pointer;
+    /* ===== SENSOR CARD ===== */
+    .card-grid {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .data-card {
+      width: 240px;
+      padding: 15px;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      color: white;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .data-card::before {
+      content: "";
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      top: -40px;
+      right: -40px;
+    }
+    .data-card:hover {
+      transform: translateY(-8px) scale(1.04) rotate(-1deg);
+      box-shadow: 0 18px 40px rgba(37, 99, 235, 0.4);
+    }
+    .data-card i {
+      font-size: 18px;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 10px;
+    }
+    
+    .data-card h5{
+  font-size:15px;
+  margin-bottom:2px;
 }
 
-.data-card::before{
-    content:"";
-    position:absolute;
-    width:120px;
-    height:120px;
-    background:rgba(255,255,255,0.15);
-    border-radius:50%;
-    top:-40px;
-    right:-40px;
+.data-card h2{
+  font-size:32px;
+  margin:0;
+  font-weight:700;
+}
+  
+
+    /* ===== STATUS CARD ===== */
+    .status-card {
+  background: linear-gradient(135deg, #2563eb, #06b6d4);
+  border-radius: 14px;
+  padding: 6px 15px;
+  margin: 0 auto 8px auto;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  border: none;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.status-card::before{
+  content:"";
+  position:absolute;
+  width:120px;
+  height:120px;
+  background:rgba(255,255,255,0.12);
+  border-radius:50%;
+  top:-40px;
+  right:-40px;
 }
 
-.data-card:hover{
-    transform:translateY(-8px) scale(1.04) rotate(-1deg);
-    box-shadow:0 18px 40px rgba(37,99,235,0.4);
+    #waterStatus {
+  display: inline-block;
+  padding: 10px 25px;
+  border-radius: 30px;
+  color: white !important;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 5px;
+  transition: 0.3s;
 }
 
-.data-card i{
-    font-size:24px;
-    width:50px;
-    height:50px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(255,255,255,0.18);
-    border-radius:14px;
+.status-good {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
-/* ===== CHART ===== */
-.chart-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:20px;
+.status-warning {
+  background: linear-gradient(135deg, #facc15, #f59e0b);
 }
 
-.chart-card{
-    background:white;
-    border:1px solid #e5e7eb;
-    padding:20px;
-    border-radius:18px;
-    box-shadow:0 5px 15px rgba(0,0,0,0.08);
+.status-bad {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+    #waterStatus {
+      font-weight: 700;
+      font-size: 16px;
+      margin: 0 0 4px 0;
+    }
+    #statusDesc {
+  font-size: 11px;
+  color: white;
+  margin: 0;
 }
 
-.chart-container{
-    height:280px;
-    position:relative;
+    /* ===== CHART ===== */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width:100%;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .chart-card {
+  background: white;
+  border: none;
+  padding: 8px;
+  border-radius: 18px;
+  box-shadow: 0 5px 15px rgba(37, 99, 235, 0.12);
+}
+    .chart-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e40af;
+  text-align: center;
+  margin-bottom: 10px;
+}
+    .chart-container {
+      height: 220px;
+      position: relative;
+    }
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+@media (max-width: 768px) {
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .main {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .data-card {
+    width: 100%;
+    max-width: 320px;
+  }
+  .chart-container {
+  height: 190px;
+}
 }
 
-.chart-container canvas{
-    width:100% !important;
-    height:100% !important;
-    display:block;
+/* ===== CONTROL CARD ===== */
+
+.control-card{
+  width:100%;
+  padding: 10px;
+  margin-bottom: 8px;
 }
 
-/* RESPONSIVE */
+.device-control{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+}
+
+.device-box{
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.25);
+  border-radius:10px;
+  padding:12px;
+  width:180px;
+  text-align:center;
+}
+
+.device-box h5{
+  font-size:14px;
+  font-weight:600;
+  margin-bottom:10px;
+  color:white;
+}
+
+.device-box button{
+  min-width:45px;
+  font-size:11px;
+  padding:4px 8px
+}
+
 @media(max-width:768px){
 
-    .chart-grid{
-        grid-template-columns:1fr;
-    }
+  .combined-card{
+    flex-direction:column;
+  }
 
-    .sidebar{
-        position:relative;
-        width:100%;
-        height:auto;
-    }
+  .divider{
+    width:100%;
+    height:1px;
+  }
 
-    .main{
-        margin-left:0;
-    }
+  .device-control{
+    flex-direction:row;
+    justify-content:center;
+  }
+
 }
 
-</style>
+  </style>
 </head>
-
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <img src="assets/img/water_quality_logo.png" alt="Logo">
+    <a href="index.html" class="active"><i class="fa fa-home"></i> Dashboard</a>
+    <a href="datatables.html"><i class="fa fa-table"></i> History</a>
+  </div>
 
-<img src="assets/img/water_quality_logo.png" alt="Logo">
+  <!-- MAIN CONTENT -->
+  <div class="main">
 
-<a href="index.html">
-<i class="fa fa-home"></i> Dashboard
-</a>
+    <!-- TOP BOX -->
+    <div class="top-box">
+      <h2>Water Quality Dashboard</h2>
+      <div style="margin-top: 5px;">
+        WebSocket: <span id="wsStatus">Disconnected</span>
+        <div id="wsText">Waiting ESP32...</div>
+        <div id="lastUpdate" style="font-size: 12px; margin-top: 5px;">-</div>
+      </div>
+    </div>
 
-<a href="datatables.html">
-<i class="fa fa-table"></i> History
-</a>
+    <!-- SENSOR CARDS -->
+    <div class="card-grid">
+      <div class="data-card">
+        <i class="fa-solid fa-flask"></i>
+        <div>
+          <h5>pH</h5>
+          <h2 id="phValue">0</h2>
+        </div>
+      </div>
+      <div class="data-card">
+        <i class="fa-solid fa-water"></i>
+        <div>
+          <h5>Kekeruhan</h5>
+          <h2 id="turbValue">0 NTU</h2>
+        </div>
+      </div>
+      <div class="data-card">
+        <i class="fa-solid fa-droplet"></i>
+        <div>
+          <h5>TDS</h5>
+          <h2 id="tdsValue">0 PPM</h2>
+        </div>
+      </div>
+    </div>
+    <!-- STATUS + CONTROL -->
+<div class="status-card combined-card">
 
-</div>
+  <!-- KIRI -->
+  <div class="status-section">
 
-<!-- MAIN -->
-<div class="main">
+    <h5>Status Kualitas Air</h5>
 
-<div class="top-box">
+    <div id="waterStatus">
+      Status Kualitas Air : -
+    </div>
 
-<h2>Water Quality Dashboard</h2>
+    <div id="statusDesc">
+      Menunggu data sensor...
+    </div>
 
-<h4 id="waterStatus"
-style="
-margin-top:15px;
-font-weight:bold;
-font-size:28px;
-">
-Status Air : -
-</h4>
+  </div>
 
-<div
-id="statusDesc"
-style="
-font-size:15px;
-margin-top:8px;
-">
-Menunggu data sensor...
-</div>
+  <!-- PEMBATAS -->
+  <div class="divider"></div>
 
-<br>
+  <!-- KANAN -->
+  <div class="control-section">
 
-WebSocket:
-<span id="wsStatus">Disconnected</span>
+    <h5>Kontrol Perangkat</h5>
 
-<div id="wsText">
-Waiting ESP32...
-</div>
+    <div class="device-control">
 
-</div>
+      <!-- FILTER -->
+      <div class="device-box">
+        <h6>
+          <i class="fa-solid fa-filter"></i>
+          Filter
+        </h6>
 
-<!-- SENSOR CARD -->
-<div class="card-grid">
+        <button class="btn btn-success btn-sm"
+                onclick="sendCommand('filter_on')">
+          ON
+        </button>
 
-<div class="data-card">
-<i class="fa-solid fa-flask"></i>
+        <button class="btn btn-danger btn-sm"
+                onclick="sendCommand('filter_off')">
+          OFF
+        </button>
+      </div>
 
-<div>
-<h5>pH</h5>
-<h2 id="phValue">0</h2>
-</div>
-</div>
+      <!-- POMPA -->
+      <div class="device-box">
+        <h6>
+          <i class="fa-solid fa-faucet"></i>
+          Pompa
+        </h6>
 
-<div class="data-card">
-<i class="fa-solid fa-water"></i>
+        <button class="btn btn-success btn-sm"
+                onclick="sendCommand('pump_on')">
+          ON
+        </button>
 
-<div>
-<h5>Kekeruhan</h5>
-<h2 id="turbValue">0 NTU</h2>
-</div>
-</div>
+        <button class="btn btn-danger btn-sm"
+                onclick="sendCommand('pump_off')">
+          OFF
+        </button>
+      </div>
+    </div>
 
-<div class="data-card">
-<i class="fa-solid fa-droplet"></i>
+    <div id="controlStatus"
+         style="margin-top:10px;color:white;">
+      -
+    </div>
 
-<div>
-<h5>Salinitas</h5>
-<h2 id="saltValue">0 PPT</h2>
-</div>
-</div>
-
-</div>
-
-<!-- CHART -->
-<div class="chart-grid">
-
-<div class="chart-card">
-
-<h3>Grafik pH Air</h3>
-
-<div class="chart-container">
-<canvas id="phChart"></canvas>
-</div>
-
-</div>
-
-<div class="chart-card">
-
-<h3>Grafik Kekeruhan Air</h3>
-
-<div class="chart-container">
-<canvas id="turbChart"></canvas>
-</div>
-
-</div>
-
-<div class="chart-card">
-
-<h3>Grafik Salinitas Air</h3>
-
-<div class="chart-container">
-<canvas id="saltChart"></canvas>
-</div>
-
-</div>
-
-</div>
+  </div>
 
 </div>
+    
 
-<script>
+    <!-- CHARTS -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Grafik pH</h3>
+        <div class="chart-container">
+          <canvas id="phChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Grafik Kekeruhan</h3>
+        <div class="chart-container">
+          <canvas id="turbChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Grafik TDS</h3>
+        <div class="chart-container">
+          <canvas id="tdsChart"></canvas>
+        </div>
+      </div>
+    </div>
 
-/* ================= FIREBASE ================= */
+  </div>
+   
 
-const firebaseConfig = {
+  <!-- JAVASCRIPT -->
+  <script>
+    // ================= VARIABLES =================
+    let ws;
+    let labels = [];
+  
+    let phData = [];
+    let turbData = [];
+    let tdsData = [];
+    let minuteCounter = 1;
 
-apiKey:
-"YOUR_API_KEY",
-
-databaseURL:
-"YOUR_DATABASE_URL"
-
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-
-/* ================= VARIABLE ================= */
-
-let ws;
-
-let labels = [];
-
-let phData = [];
-
-let turbData = [];
-
-let saltData = [];
-
-let minuteCounter = 1;
-
-/* ================= CREATE CHART ================= */
-
-function createChart(id,label,color,data,yTitle){
-
-    return new Chart(document.getElementById(id),{
-
-        type:'line',
-
-        data:{
-
-            labels:labels,
-
-            datasets:[{
-
-                label:label,
-
-                data:data,
-
-                borderColor:color,
-
-                backgroundColor:'transparent',
-
-                borderWidth:2,
-
-                tension:0.3,
-
-                fill:false,
-
-                pointRadius:4,
-
-                pointHoverRadius:6
-            }]
+    // ================= CREATE CHART =================
+    function createChart(id, label, color, data, yTitle, minY, maxY) {
+      return new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: data,
+            borderColor: color,
+            backgroundColor: 'rgba(59,130,246,0.15)',
+            borderWidth: 3,
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 8
+          }]
         },
-
-        options:{
-
-            responsive:true,
-
-            maintainAspectRatio:false,
-
-            plugins:{
-                legend:{
-                    display:false
-                }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Menit',
+                color: '#111827',
+                font: { size: 11, weight: 'bold' }
+              },
+              ticks: { color: '#111827', font: { size: 10 } },
+              grid: { display: false }
             },
+            y: {
+              min: minY,
+              max: maxY,
 
-            scales:{
+              title: {
+                display: true,
+                text: yTitle,
+                color: '#111827',
+                font: { size: 11, weight: 'bold' }
+              },
 
-                x:{
-                    title:{
-                        display:true,
-                        text:'Menit Pengambilan Data',
-                        color:'#111827',
-                        font:{
-                            size:12,
-                            weight:'bold'
-                        }
-                    },
-                    ticks:{
-                        color:'#111827'
-                    },
-                    grid:{
-                        display:false
-                    }
-                },
-
-                y:{
-                    title:{
-                        display:true,
-                        text:yTitle,
-                        color:'#111827',
-                        font:{
-                            size:12,
-                            weight:'bold'
-                        }
-                    },
-                    ticks:{
-                        color:'#111827'
-                    },
-                    beginAtZero:false
-                }
-
+              ticks: {
+                color: '#111827',
+                font: { size: 10 }
+              }
             }
-
+          }
         }
+      });
+    }
 
-    });
+    // ================= INIT CHARTS =================
+    let phChart = createChart("phChart", "pH", "#3b82f6", phData, "pH", 0, 14);
+    let turbChart = createChart("turbChart", "NTU", "#f59e0b", turbData, "NTU", 0, 30);
+    let tdsChart = createChart("tdsChart", "TDS", "#10b981", tdsData, "PPM", 0, 1000);
+
+    // ================= WEBSOCKET CONNECTION =================
+    function connectWS() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = protocol + '//' + window.location.host;
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = function() {
+      document.getElementById("wsStatus").innerText = "Connected";
+      document.getElementById("wsText").innerText = "ESP32 Online";
+      console.log("[✅ WS] Connected");
+      };
+
+      ws.onmessage = function(event) {
+        try {
+      
+          const data = JSON.parse(event.data);
+
+          // ================= SKIP ACK =================
+
+           if (data.type === "ack") {
+        document.getElementById("controlStatus").innerHTML =
+          "✅ " + (data.status || "OK");
+      return;
+           }
+           if (data.ph == null || data.turbidity == null || data.tds == null) return;
+
+          // Update timestamp
+          document.getElementById("lastUpdate").innerText = 
+            "Update: " + new Date().toLocaleTimeString();
+
+          // Update sensor values
+          document.getElementById("phValue").innerText = 
+            parseFloat(data.ph).toFixed(2);
+          document.getElementById("turbValue").innerText = 
+            parseFloat(data.turbidity).toFixed(1) + " NTU";
+          document.getElementById("tdsValue").innerText = 
+            parseFloat(data.tds).toFixed(2) + " PPM";
+
+          // Update status air
+          const statusEl = document.getElementById("waterStatus");
+          const descEl = document.getElementById("statusDesc");
+
+         if (data.status === "Layak") {
+
+  statusEl.innerHTML = "✅ AIR LAYAK";
+  statusEl.className = "status-good";
+  descEl.innerText = "Air memenuhi standar kualitas";
+
+} else if (data.status === "Perlu Perhatian") {
+
+  statusEl.innerHTML = "⚠ PERLU PERHATIAN";
+  statusEl.className = "status-warning";
+  descEl.innerText = "Beberapa parameter perlu diperiksa";
+
+} else {
+
+  statusEl.innerHTML = "❌ AIR TIDAK LAYAK";
+  statusEl.className = "status-bad";
+  descEl.innerText = "Kualitas air tidak memenuhi standar";
 
 }
 
-/* ================= CHART INIT ================= */
+          // Update charts
+          labels.push(minuteCounter++);
+          phData.push(parseFloat(data.ph));
+          turbData.push(parseFloat(data.turbidity));
+          tdsData.push(parseFloat(data.tds));
 
-let phChart =
-createChart(
-"phChart",
-"pH",
-"#3b82f6",
-phData,
-"Nilai pH"
-);
-
-let turbChart =
-createChart(
-"turbChart",
-"NTU",
-"#f59e0b",
-turbData,
-"Kekeruhan (NTU)"
-);
-
-let saltChart =
-createChart(
-"saltChart",
-"Salinitas",
-"#10b981",
-saltData,
-"Salinitas (PPT)"
-);
-
-/* ================= WEBSOCKET ================= */
-
-function connectWS(){
-
-    ws = new WebSocket(
-    "ws://pantyhose-persecute-briskly.ngrok-free.dev"
-    );
-
-    /* CONNECTED */
-    ws.onopen = () => {
-
-        document.getElementById("wsStatus").innerText =
-        "Connected";
-
-        document.getElementById("wsText").innerText =
-        "ESP32 Online";
-
-        console.log("[WS] Connected");
-
-    };
-
-    /* RECEIVE DATA */
-    ws.onmessage = (event) => {
-
-        console.log("DATA:", event.data);
-
-        const data =
-        JSON.parse(event.data);
-
-        if(data.ph === undefined)
-        return;
-
-        /* SENSOR */
-
-        document.getElementById("phValue").innerText =
-        parseFloat(data.ph).toFixed(2);
-
-        document.getElementById("turbValue").innerText =
-        parseFloat(data.turbidity).toFixed(2)
-        +" NTU";
-
-        document.getElementById("saltValue").innerText =
-        parseFloat(data.salinity).toFixed(2)
-        +" PPT";
-
-        /* STATUS AIR */
-
-        if(data.status === "Baik"){
-
-            document.getElementById("waterStatus").innerHTML =
-            "Status Air : ✅ BAIK";
-
-            document.getElementById("statusDesc").innerHTML =
-            "Air layak digunakan untuk kebutuhan rumah tangga non konsumsi";
-
-        }
-
-        else{
-
-            document.getElementById("waterStatus").innerHTML =
-            "Status Air : ❌ BURUK";
-
-            document.getElementById("statusDesc").innerHTML =
-            "Air perlu filtrasi atau tidak layak digunakan";
-
-        }
-
-        /* SAVE FIREBASE */
-
-        db.ref("history").push({
-
-            timestamp:
-            data.timestamp ||
-
-            new Date().toLocaleString(),
-
-            ph:data.ph,
-
-            turbidity:data.turbidity,
-
-            salinity:data.salinity,
-
-            status:data.status || "-",
-
-            ph_category:
-            data.ph_category || "-",
-
-            turbidity_category:
-            data.turbidity_category || "-",
-
-            salinity_category:
-            data.salinity_category || "-"
-
-        });
-
-        /* CHART */
-
-        labels.push(minuteCounter);
-
-        minuteCounter++;
-
-        phData.push(
-        parseFloat(data.ph)
-        );
-
-        turbData.push(
-        parseFloat(data.turbidity)
-        );
-
-        saltData.push(
-        parseFloat(data.salinity)
-        );
-
-        /* MAX 10 DATA */
-
-        if(labels.length > 10){
-
+          if (labels.length > 10) {
             labels.shift();
-
             phData.shift();
-
             turbData.shift();
+            tdsData.shift();
+          }
 
-            saltData.shift();
+          phChart.update();
+          turbChart.update();
+          tdsChart.update();
 
+        } catch (err) {
+          console.error("[❌] Parse error:", err.message);
         }
+      };
 
-        phChart.update();
+      ws.onerror = function(error) {
+        console.log("[❌ WS Error]", error);
+      };
 
-        turbChart.update();
+      ws.onclose = function() {
+      document.getElementById("wsStatus").innerText = "Disconnected";
+      document.getElementById("wsText").innerText = "Reconnecting...";
+      setTimeout(connectWS, 2000);
+      };
+    }
 
-        saltChart.update();
+    // ================= START CONNECTION =================
+    function sendCommand(command) {
 
-    };
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
 
-    /* ERROR */
+    alert("WebSocket belum terhubung");
+    return;
+  }
 
-    ws.onerror = (error) => {
+  const data = {
+    type: "control",
+    command: command
+  };
 
-        console.log(
-        "[WS ERROR]",
-        error
-        );
+  ws.send(JSON.stringify(data));
 
-    };
+  console.log("SEND:", data);
 
-    /* DISCONNECTED */
-
-    ws.onclose = () => {
-
-        console.log(
-        "[WS] Disconnected"
-        );
-
-        document.getElementById("wsStatus").innerText =
-        "Disconnected";
-
-        document.getElementById("wsText").innerText =
-        "Reconnecting...";
-
-        setTimeout(
-        connectWS,
-        2000
-        );
-
-    };
-
+  document.getElementById("controlStatus").innerHTML =
+    "Perintah dikirim: " + command;
 }
 
-/* ================= START ================= */
-
-connectWS();
-
-</script>
+    connectWS();
+  </script>
 
 </body>
 </html>
